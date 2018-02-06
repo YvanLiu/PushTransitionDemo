@@ -74,13 +74,9 @@
 #define COLOR_F7    [UIColor colorWithHexString:@"F7F7F7"]
 #define COLOR_45    [UIColor colorWithHexString:@"454545"]
 
-#define COLOR_L_HOLDER [UIColor colorWithHexString:@"A6CFD1"]
-
 #define IPHONE_X ([[WBTool iphoneType] isEqualToString:@"iPhone X"] || [[WBTool iphoneType] isEqualToString:@"iPhone Simulator"])
 
 
-#define FUNCTION_TITLE      @"让工作更便捷"
 #define HOME_TITLE          @"Today"
 
-#define STRINGHANDLE(str) [WBTool stringWithString:str]
 

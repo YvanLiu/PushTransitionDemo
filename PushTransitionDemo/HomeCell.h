@@ -10,9 +10,9 @@
 #import "Define.h"
 @interface HomeCell : UITableViewCell
 
-@property (strong, nonatomic) UIImageView *bgimageView;
-@property (strong, nonatomic) UIView *bgView;
-@property (strong, nonatomic) UILabel *titleLabel;
-@property (strong, nonatomic) UILabel *contentLabel;
+@property (strong, nonatomic) UIImageView *bgimageView;         // 图片
+@property (strong, nonatomic) UIView *bgView;                   // 背景
+@property (strong, nonatomic) UILabel *titleLabel;              // 主标题
+@property (strong, nonatomic) UILabel *contentLabel;            // 副标题
 
 @end
