@@ -228,7 +228,7 @@
     
     HomeCell *cell = (HomeCell *)[self.tableView cellForRowAtIndexPath:[self.tableView indexPathForSelectedRow]];
     UIViewController *toVC = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
-    UIView *toView = [toVC valueForKeyPath:@"QRBGImageView"];
+    UIView *toView = [toVC valueForKeyPath:@"headerImageView"];
     UIView *fromView = cell.bgView;
     UIView *containerView = [transitionContext containerView];
     UIView *snapShotView = [[UIImageView alloc]initWithImage:cell.bgimageView.image];

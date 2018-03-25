@@ -13,18 +13,20 @@
 #import "Tabbar.h"
 @interface HomeDetailViewController ()<UITableViewDelegate,UITableViewDataSource,UIViewControllerAnimatedTransitioning,UINavigationControllerDelegate,UIGestureRecognizerDelegate>
 @property (strong, nonatomic) UITableView *tableView;
-@property (strong, nonatomic) UIImageView *bgImageView;
-@property (strong, nonatomic) UILabel *contentLabel;
-@property (strong, nonatomic) UIImageView *QRBGImageView;
-@property (strong, nonatomic) UILabel *titleLabel;
-@property (strong, nonatomic) UILabel *titleTwoLabel;
+@property (strong, nonatomic) UIImageView *bgImageView;     // 上个页面截图
+@property (strong, nonatomic) UILabel *contentLabel;        // 内容
+@property (strong, nonatomic) UIImageView *headerImageView; // 大图
+@property (strong, nonatomic) UILabel *titleLabel;          // 主标题
+@property (strong, nonatomic) UILabel *titleTwoLabel;       // 副标题
 @end
 
 @implementation HomeDetailViewController
 {
     CGFloat cellHeight;
+    CGFloat startPointX;
     CGFloat startPointY;
     CGFloat scale;
+    BOOL isHorizontal;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -52,11 +54,11 @@
 
 #pragma mark - ==============================UI============================
 
-
 - (void)buildSubviews {
-    
+    // 背景图
     [self.view addSubview:self.bgImageView];
     self.bgImageView.image = self.bgImage;
+    // 背景毛玻璃
     UIBlurEffect *effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
     UIVisualEffectView *effectView = [[UIVisualEffectView alloc] initWithEffect:effect];
     effectView.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -64,21 +66,18 @@
     
     [self.view addSubview:self.tableView];
     self.tableView.tableHeaderView = [self tableViewHeaderView];
-    
-    
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(pan:)];
+    [self.tableView addGestureRecognizer:pan];
+    pan.delegate = self;
+
 }
 
 - (UIView *)tableViewHeaderView {
     UIView *headerView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_WIDTH*1.3)];
     
-    self.QRBGImageView.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_WIDTH*1.3);
-    self.QRBGImageView.image = [UIImage imageNamed:self.imageName];
-    [headerView addSubview:self.QRBGImageView];
-    
-    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(pan:)];
-    [self.QRBGImageView addGestureRecognizer:pan];
-    pan.delegate = self;
-    
+    self.headerImageView.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_WIDTH*1.3);
+    self.headerImageView.image = [UIImage imageNamed:self.imageName];
+    [headerView addSubview:self.headerImageView];
     self.titleLabel.text =self.titles;
     self.titleTwoLabel.text = self.titleTwo;
     [headerView addSubview:self.titleLabel];
@@ -118,9 +117,9 @@
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView.contentOffset.y <= 0) {
         
-        CGRect rectQ = self.QRBGImageView.frame;
+        CGRect rectQ = self.headerImageView.frame;
         rectQ.origin.y = scrollView.contentOffset.y;
-        self.QRBGImageView.frame = rectQ;
+        self.headerImageView.frame = rectQ;
         
         CGRect rectT = _titleLabel.frame;
         rectT.origin.y = scrollView.contentOffset.y+30;
@@ -137,14 +136,28 @@
 - (void)pan:(UIPanGestureRecognizer *)pan {
     switch (pan.state) {
         case UIGestureRecognizerStateBegan: {   // 手势开始
-            CGPoint currentPoint =[pan locationInView:self.QRBGImageView];
+            CGPoint currentPoint =[pan locationInView:self.tableView];
             startPointY = currentPoint.y;
-            //NSLog(@"手势开始 (%f,%f)",currentPoint.x,currentPoint.y);
+            startPointX = currentPoint.x;
+            // 确定是否可以横划，判断起始点位置
+            if (startPointX>30) {
+                isHorizontal = NO;
+            } else {
+                isHorizontal = YES;
+            }
         } break;
         case UIGestureRecognizerStateChanged: { // 手势状态改变
-            CGPoint currentPoint =[pan locationInView:self.QRBGImageView];
-            
-            scale = (SCREEN_HEIGHT-(currentPoint.y-startPointY))/SCREEN_HEIGHT;
+            CGPoint currentPoint =[pan locationInView:self.tableView];
+            // 如果可以横划，判断是横划还是竖划
+            if (isHorizontal) {
+                if ((currentPoint.x-startPointX)>(currentPoint.y-startPointY)) {
+                    scale = (SCREEN_WIDTH-(currentPoint.x-startPointX))/SCREEN_WIDTH;
+                } else {
+                    scale = (SCREEN_HEIGHT-(currentPoint.y-startPointY))/SCREEN_HEIGHT;
+                }
+            } else {
+                scale = (SCREEN_HEIGHT-(currentPoint.y-startPointY))/SCREEN_HEIGHT;
+            }
             if (scale > 1.0f) {
                 scale = 1.0f;
             } else if (scale <=0.8f) {
@@ -215,7 +228,7 @@
     HomeViewController *toVC = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     HomeDetailViewController *fromVC = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
     UIView *containerView = [transitionContext containerView];
-    UIView *fromView = [fromVC valueForKeyPath:@"QRBGImageView"];
+    UIView *fromView = [fromVC valueForKeyPath:@"headerImageView"];
     toVC.view.frame = [transitionContext finalFrameForViewController:toVC];
     HomeCell *cell = (HomeCell *)[toVC.tableView cellForRowAtIndexPath:self.selectIndexPath];
     UIView *originView = cell.bgimageView;
@@ -320,12 +333,12 @@
     return _contentLabel;
 }
 
-- (UIImageView *)QRBGImageView {
-    if (_QRBGImageView == nil) {
-        _QRBGImageView = [[UIImageView alloc]init];
-        _QRBGImageView.userInteractionEnabled = YES;
+- (UIImageView *)headerImageView {
+    if (_headerImageView == nil) {
+        _headerImageView = [[UIImageView alloc]init];
+        _headerImageView.userInteractionEnabled = YES;
     }
-    return _QRBGImageView;
+    return _headerImageView;
 }
 
 - (UIImageView *)bgImageView {
